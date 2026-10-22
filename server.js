@@ -3,6 +3,9 @@ const session = require('express-session');
 const { rateLimit } = require('express-rate-limit');
 const { timingSafeEqual, createHash, randomBytes } = require('node:crypto');
 const mqtt = require('mqtt');
+const path = require('node:path');
+const { createNameStore, validName } = require('./light-names');
+const nameStore = createNameStore(process.env.LIGHT_NAMES_FILE || path.join(__dirname, 'data', 'light-names.json'));
 const mode = process.env.CONTROL_MODE || 'demo';
 if (!['demo','mqtt'].includes(mode)) throw Error('CONTROL_MODE must be demo or mqtt');
 const live = mode === 'mqtt';
@@ -11,7 +14,7 @@ if (!/^[A-Za-z0-9-]+$/.test(process.env.MQTT_HOME_ID || 'my-house')) throw Error
 const mainEnabled = live && process.env.ENABLE_MAIN_POWER === 'true';
 const rooms = ['Living room','Kitchen','Bedrooms','Outdoors'];
 const names = ['Ceiling','Reading lamp','Accent lights','Dining table','Counter lights','Ceiling','Pantry','Main bedroom','Bedside left','Bedside right','Bedroom two','Bedroom three','Hallway','Bathroom','Porch','Garden','Driveway','Terrace'];
-const lights = names.map((name,i)=>({id:i+1,name,room:rooms[i<4?0:i<7?1:i<14?2:3],on:live?null:false}));
+const lights = names.map((name,i)=>({id:i+1,name:nameStore.get(i+1,name),room:rooms[i<4?0:i<7?1:i<14?2:3],on:live?null:false}));
 let online = !live, main = null, updatedAt = null;
 let broker;
 const pending = new Map();
@@ -48,6 +51,16 @@ app.post('/api/logout',(req,res)=>req.session.destroy(()=>res.json({ok:true})));
 app.use('/api',(req,res,next)=>!live||req.session.auth?next():res.status(401).json({error:'Sign in required'}));
 function connected(){return !live||(online&&broker?.connected&&updatedAt&&Date.now()-updatedAt<45000);}
 app.get('/api/state',(req,res)=>res.json({mode,online:!!connected(),lights,main,mainEnabled,updatedAt}));
+app.post('/api/lights/:id/name',(req,res)=>{
+ const id = Number(req.params.id);
+ if (!/^(?:[1-9]|1[0-8])$/.test(req.params.id) || !Number.isInteger(id)) return res.status(404).json({error:'Light not found'});
+ if (!validName(req.body?.name)) return res.status(400).json({error:'Enter a name of 1–40 characters, without control characters.'});
+ const name = req.body.name.trim();
+ try { nameStore.set(id,name); }
+ catch { return res.status(500).json({error:'Could not save the name. Please check server storage and try again.'}); }
+ lights[id-1].name = name;
+ res.json({id,name});
+});
 app.post('/api/control',rateLimit({windowMs:1000,limit:12,legacyHeaders:false}),async(req,res)=>{
  const {target,on,confirmation}=req.body;
  if(typeof on!=='boolean'||!(target==='all'||target==='main'||Number.isInteger(target)&&target>=1&&target<=18))return res.status(400).json({error:'Invalid command'});

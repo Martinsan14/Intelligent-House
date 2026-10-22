@@ -15,7 +15,7 @@ npm start
 
 Open the local address shown by your development setup on port 3000. The default server binds to `127.0.0.1`. No password or electrical hardware is needed for demo mode. All device states are simulated and reset when the server restarts. To test from a phone on trusted home Wi-Fi, run with `HOST=0.0.0.0` (or set it in `.env`) and use the computer's LAN address. Do not forward router ports.
 
-Room and light names are currently configured in `server.js`; change those before commissioning. The UI reports controller output state, not measured lamp power. A failed bulb, welded contact, or breaker trip cannot be detected by this reference adapter.
+Rename any light using the pencil button on its card, enter a name, then choose **Save name**. Names support up to 40 characters and are shared by all devices. They survive server restarts in `data/light-names.json` (ignored by Git). Back up this file and keep the data directory on persistent storage when hosting; set `LIGHT_NAMES_FILE` to override its location. Renaming works while the controller is offline and never switches a light. Live mode requires sign-in to rename. Room assignments are currently configured in `server.js`. The UI reports controller output state, not measured lamp power. A failed bulb, welded contact, or breaker trip cannot be detected by this reference adapter.
 
 ## Live control at home and away
 
