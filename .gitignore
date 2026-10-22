@@ -1,0 +1,6 @@
+node_modules/
+.env
+firmware/include/secrets.h
+firmware/.pio/
+test-results/
+playwright-report/

@@ -1,0 +1,35 @@
+{
+  "name": "intelligent-house",
+  "version": "1.0.0",
+  "description": "Phone-friendly lighting controls and ESP32 firmware",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js",
+    "test": "node --test test/*.test.js",
+    "test:browser": "playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Martinsan14/Intelligent-House.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Martinsan14/Intelligent-House/issues"
+  },
+  "homepage": "https://github.com/Martinsan14/Intelligent-House#readme",
+  "dependencies": {
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.1",
+    "express-session": "^1.19.0",
+    "mqtt": "^5.16.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
+  }
+}
